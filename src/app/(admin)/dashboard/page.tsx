@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -26,6 +25,7 @@ interface Admin {
   name: string;
   email: string;
   role: string;
+  profileImage?: string | null;
 }
 
 interface DashboardStats {
@@ -48,9 +48,6 @@ export default function DashboardPage() {
   const [loadingAdmin, setLoadingAdmin] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
 
- 
- 
-
   // --------------------------------------------------
   // Fetch Admin Details
   // --------------------------------------------------
@@ -60,15 +57,14 @@ export default function DashboardPage() {
       try {
         setLoadingAdmin(true);
 
-        const response = await axios.get("api/v1/admin", {
-         withCredentials:true
-         
+        const response = await axios.get("/api/v1/admin", {
+          withCredentials: true,
         });
 
-        const data = await response.data;
+        const data = response.data;
 
         if (!data) {
-          throw new Error(data?.message || "Unable to fetch admin");
+          throw new Error("Unable to fetch admin");
         }
 
         setAdmin(data?.data || data);
@@ -91,7 +87,12 @@ export default function DashboardPage() {
       try {
         setLoadingStats(true);
 
-        const response = await fetch("", {
+        /*
+          IMPORTANT:
+          Replace this URL with your actual dashboard stats API.
+        */
+
+        const response = await fetch("/api/v1/admin/dashboard", {
           method: "GET",
           credentials: "include",
         });
@@ -107,6 +108,14 @@ export default function DashboardPage() {
         setStats(data?.data || data);
       } catch (error) {
         console.error("Dashboard stats error:", error);
+
+        // Temporary default values
+        setStats({
+          totalBids: 0,
+          totalLuckyDrawEvents: 0,
+          totalBiddingUsers: 0,
+          totalPayments: 0,
+        });
       } finally {
         setLoadingStats(false);
       }
@@ -121,7 +130,7 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/v1/auth/logout", {
+      await fetch("/api/v1/admin/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -133,7 +142,7 @@ export default function DashboardPage() {
   };
 
   // --------------------------------------------------
-  // Sidebar Item
+  // Sidebar styles
   // --------------------------------------------------
 
   const sidebarItem =
@@ -156,6 +165,7 @@ export default function DashboardPage() {
       >
 
         {/* Logo */}
+
         <div className="flex h-16 items-center justify-between border-b border-gray-700 px-4">
 
           {sidebarOpen && (
@@ -170,12 +180,15 @@ export default function DashboardPage() {
           >
             <Menu size={22} />
           </button>
+
         </div>
 
         {/* Navigation */}
+
         <nav className="mt-6 space-y-2 px-3">
 
           {/* Dashboard */}
+
           <button
             onClick={() => router.push("/dashboard")}
             className={`${sidebarItem} ${
@@ -217,9 +230,11 @@ export default function DashboardPage() {
                   )}
                 </>
               )}
+
             </button>
 
             {/* Bidding Children */}
+
             {sidebarOpen && biddingOpen && (
               <div className="mt-1 space-y-1">
 
@@ -245,7 +260,9 @@ export default function DashboardPage() {
 
                 <button
                   onClick={() =>
-                    router.push("/dashboard/bidding-user-payment")
+                    router.push(
+                      "/dashboard/bidding-user-payment"
+                    )
                   }
                   className={childItem}
                 >
@@ -255,7 +272,9 @@ export default function DashboardPage() {
 
                 <button
                   onClick={() =>
-                    router.push("/dashboard/bidding-participants")
+                    router.push(
+                      "/dashboard/bidding-participants"
+                    )
                   }
                   className={childItem}
                 >
@@ -287,7 +306,9 @@ export default function DashboardPage() {
           <div>
 
             <button
-              onClick={() => setLuckyDrawOpen(!luckyDrawOpen)}
+              onClick={() =>
+                setLuckyDrawOpen(!luckyDrawOpen)
+              }
               className={`${sidebarItem} ${
                 sidebarOpen ? "" : "justify-center"
               }`}
@@ -312,6 +333,7 @@ export default function DashboardPage() {
             </button>
 
             {/* Lucky Draw Children */}
+
             {sidebarOpen && luckyDrawOpen && (
               <div className="mt-1 space-y-1">
 
@@ -327,7 +349,9 @@ export default function DashboardPage() {
 
                 <button
                   onClick={() =>
-                    router.push("/dashboard/lucky-draw-image")
+                    router.push(
+                      "/dashboard/lucky-draw-image"
+                    )
                   }
                   className={childItem}
                 >
@@ -343,17 +367,20 @@ export default function DashboardPage() {
         </nav>
 
         {/* Logout */}
+
         <div className="absolute bottom-5 w-full px-3">
 
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-red-400 hover:bg-gray-800"
           >
+
             <LogOut size={20} />
 
             {sidebarOpen && (
               <span>Logout</span>
             )}
+
           </button>
 
         </div>
@@ -371,9 +398,11 @@ export default function DashboardPage() {
       >
 
         {/* Header */}
+
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white px-6">
 
           <div>
+
             <h2 className="text-xl font-semibold text-gray-800">
               Dashboard
             </h2>
@@ -382,11 +411,13 @@ export default function DashboardPage() {
               Welcome back
               {admin?.name ? `, ${admin.name}` : ""}
             </p>
+
           </div>
 
           <div className="flex items-center gap-4">
 
             {/* Search */}
+
             <div className="hidden items-center rounded-lg border bg-gray-50 px-3 md:flex">
 
               <Search
@@ -403,34 +434,48 @@ export default function DashboardPage() {
             </div>
 
             {/* Notification */}
+
             <button className="relative rounded-lg p-2 hover:bg-gray-100">
+
               <Bell size={21} />
 
               <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+
             </button>
 
             {/* Admin Profile */}
+
             <div className="flex items-center gap-3">
 
               {loadingAdmin ? (
+
                 <Loader2
                   size={20}
                   className="animate-spin text-gray-500"
                 />
+
               ) : (
+
                 <>
+
                   {admin?.profileImage ? (
+
                     <img
                       src={admin.profileImage}
                       alt={admin.name}
                       className="h-9 w-9 rounded-full object-cover"
                     />
+
                   ) : (
+
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
                       {admin?.name
-                        ? admin.name.charAt(0).toUpperCase()
+                        ? admin.name
+                            .charAt(0)
+                            .toUpperCase()
                         : "A"}
                     </div>
+
                   )}
 
                   <div className="hidden sm:block">
@@ -444,7 +489,9 @@ export default function DashboardPage() {
                     </p>
 
                   </div>
+
                 </>
+
               )}
 
             </div>
@@ -478,6 +525,7 @@ export default function DashboardPage() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
             {/* Total Bids */}
+
             <div className="rounded-xl bg-white p-5 shadow-sm">
 
               <div className="flex items-center justify-between">
@@ -508,6 +556,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Lucky Draw Events */}
+
             <div className="rounded-xl bg-white p-5 shadow-sm">
 
               <div className="flex items-center justify-between">
@@ -538,6 +587,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Bidding Users */}
+
             <div className="rounded-xl bg-white p-5 shadow-sm">
 
               <div className="flex items-center justify-between">
@@ -568,6 +618,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Payments */}
+
             <div className="rounded-xl bg-white p-5 shadow-sm">
 
               <div className="flex items-center justify-between">
@@ -606,6 +657,7 @@ export default function DashboardPage() {
           <div className="mt-6 grid gap-6 md:grid-cols-2">
 
             {/* Bidding */}
+
             <div className="rounded-xl bg-white p-6 shadow-sm">
 
               <div className="flex items-center gap-4">
@@ -615,6 +667,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
+
                   <h3 className="text-lg font-semibold">
                     Bidding
                   </h3>
@@ -622,6 +675,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-500">
                     Manage bids, rounds, users and payments.
                   </p>
+
                 </div>
 
               </div>
@@ -639,6 +693,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Lucky Draw */}
+
             <div className="rounded-xl bg-white p-6 shadow-sm">
 
               <div className="flex items-center gap-4">
@@ -648,6 +703,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
+
                   <h3 className="text-lg font-semibold">
                     Lucky Draw
                   </h3>
@@ -655,6 +711,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-500">
                     Manage lucky draw events and images.
                   </p>
+
                 </div>
 
               </div>
@@ -680,4 +737,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
